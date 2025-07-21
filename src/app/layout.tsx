@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "@/font/iranSans.css";
 import "./globals.css";
+import Layout from "@/components/layout/Layout";
+import { ReduxProvider } from "@/redux/Provider";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -14,7 +16,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`antialiased`}>{children}</body>
+      <body className={`antialiased`}>
+        <ReduxProvider>
+          <Layout>{children}</Layout>
+        </ReduxProvider>
+      </body>
     </html>
   );
 }
