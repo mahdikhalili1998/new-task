@@ -9,4 +9,18 @@ body {
   .blackColor {
     color: #210f37;
   }
+
+  @keyframes slide-right-left {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(5px);
+    }
+  }
+
+  .animate-slide {
+    animation: slide-right-left 1s ease-in-out infinite;
+  }
 }

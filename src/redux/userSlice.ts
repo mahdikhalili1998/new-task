@@ -10,12 +10,30 @@ const initialState: IUsersState = {
   error: null,
 };
 
-// گرفتن لیست کاربران از API
+// getting user info
 export const fetchUsers = createAsyncThunk(
   "users/fetchUsers",
   async (page: number) => {
     const response = await axiosClient.get(`/users?page=${page}`);
     return response.data;
+  },
+);
+
+// editing user info
+export const updateUser = createAsyncThunk(
+  "users/updateUser",
+  async ({ id, data }: { id: number; data: any }) => {
+    const response = await axiosClient.put(`/users/${id}`, data);
+    return response.data;
+  },
+);
+
+// deleting user
+export const deleteUser = createAsyncThunk(
+  "users/deleteUser",
+  async (id: number) => {
+    await axiosClient.delete(`/users/${id}`);
+    return id;
   },
 );
 
@@ -42,6 +60,37 @@ const userSlice = createSlice({
       .addCase(fetchUsers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message ?? "خطا در دریافت کاربران";
+      })
+      //  editing user
+      .addCase(updateUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.loading = false;
+        const updated = action.payload;
+        const index = state.users.findIndex((u) => u.id === updated.id);
+        if (index !== -1) {
+          state.users[index] = updated;
+        }
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message ?? "خطا در ویرایش کاربر";
+      })
+      // deleting user
+      .addCase(deleteUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteUser.fulfilled, (state, action) => {
+        state.loading = false;
+        const id = action.payload;
+        state.users = state.users.filter((user) => user.id !== id);
+      })
+      .addCase(deleteUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message ?? "خطا در حذف کاربر";
       });
   },
 });

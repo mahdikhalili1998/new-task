@@ -22,7 +22,7 @@ function TextDemo() {
   }, []);
 
   return (
-    <div className="flex min-h-[2.5rem] justify-center rounded-b-[85%] bg-slate-200 px-3 pt-8 pb-10 text-xl font-semibold mb-14">
+    <div className="mb-14 flex min-h-[2.5rem] justify-center rounded-b-[85%] bg-slate-200 px-3 pt-8 pb-10 text-xl font-semibold shadow-lg/65 shadow-blue-600">
       <span ref={el} />
     </div>
   );

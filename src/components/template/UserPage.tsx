@@ -4,11 +4,13 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { fetchUsers } from "@/redux/userSlice";
-import { FadeLoader } from "react-spinners";
+import { PulseLoader } from "react-spinners";
 import { TbReload } from "react-icons/tb";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { MdKeyboardDoubleArrowRight } from "react-icons/md";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function UsersPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -32,7 +34,10 @@ export default function UsersPage() {
     <div className="p-6">
       <h1 className="mb-4 text-2xl font-bold text-white">لیست کاربران</h1>
       <button
-        onClick={(e) => router.refresh()}
+        onClick={(e) => {
+          router.refresh();
+          toast.success("بروز رسانی انجام شد");
+        }}
         className="mb-8 flex items-center justify-center gap-3 rounded-lg bg-blue-500 px-3 py-2 font-semibold text-white"
       >
         <span>بروز رسانی</span>
@@ -42,7 +47,7 @@ export default function UsersPage() {
       </button>
       {loading && (
         <div className="mx-auto w-max">
-          <FadeLoader color="#1553da" height={25} width={7} />
+          <PulseLoader color="#366de5" margin={8} size={15} />
         </div>
       )}
       {error && <p className="text-red-500">خطا: {error}</p>}
@@ -52,13 +57,17 @@ export default function UsersPage() {
           <Link
             href={`/users/${user.id}`}
             key={user.id}
-            className="flex items-center justify-between rounded-lg border border-white p-4 shadow transition hover:shadow-lg"
+            className="flex items-center justify-between rounded-lg border border-blue-600 p-4 shadow transition hover:shadow-lg"
           >
-            <div>
+            <div className="flex flex-col items-start gap-2">
               <h2 className="font-semibold text-white">
                 {user.first_name} {user.last_name}
               </h2>
               <p className="text-sm font-bold text-gray-500">{user.email}</p>
+              <button className="flex items-center gap-1 rounded bg-blue-600 px-3 py-2 text-sm text-white">
+                <MdKeyboardDoubleArrowRight className="animate-slide" />
+                <span> مشاهده پروفایل</span>
+              </button>
             </div>
             <Image
               width={300}
@@ -66,7 +75,7 @@ export default function UsersPage() {
               priority
               src={user.avatar}
               alt={user.first_name}
-              className="mb-2 size-24 rounded-full"
+              className="mb-2 size-24 rounded-full border-[3px] border-blue-600"
             />
           </Link>
         ))}
@@ -91,6 +100,7 @@ export default function UsersPage() {
           قبلی
         </button>
       </div>
+      <Toaster />
     </div>
   );
 }
