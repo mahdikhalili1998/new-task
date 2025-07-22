@@ -22,7 +22,7 @@ export const fetchUsers = createAsyncThunk(
 // editing user info
 export const updateUser = createAsyncThunk(
   "users/updateUser",
-  async ({ id, data }: { id: number; data: any }) => {
+  async ({ id, data }: { id: number; data}) => {
     const response = await axiosClient.put(`/users/${id}`, data);
     return response.data;
   },

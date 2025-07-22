@@ -5,7 +5,7 @@ function Mainpage() {
   return (
     <div>
       main page
-      {/* <LoginModal /> */}
+      <LoginModal />
     </div>
   );
 }

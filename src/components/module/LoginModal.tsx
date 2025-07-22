@@ -1,8 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import { loginUser } from "@/redux/authSlice";
 import { IUserInfo } from "@/types/StateTypes";
-import axiosClient from "@/utils/axiosClient";
-import { useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
+import { PulseLoader } from "react-spinners";
+import { useRouter } from "next/navigation";
 
 function LoginModal() {
   const [userInfo, setUserInfo] = useState<IUserInfo>({
@@ -10,52 +14,86 @@ function LoginModal() {
     password: "",
   });
 
-  const inputClass =
-    "rounded-lg border-2 border-solid border-white px-6 py-3 placeholder:text-sm placeholder:font-bold placeholder:text-white/55 focus:outline-none text-white";
+  const [register, setRegister] = useState<boolean>(false);
 
-  const loginHandler = async (userInfo: {
-    email: string;
-    password: string;
-  }) => {
-    try {
-      const res = await axiosClient.post("/register", { ...userInfo });
-      console.log(res);
-    } catch (error) {
-      console.log(error);
+  const router = useRouter();
+
+  const dispatch = useAppDispatch();
+  const { loading, error, token } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (token) {
+      if (!register) {
+        toast.success("ورود با موفقیت انجام شد 🎉");
+      } else {
+        toast.success("حساب با موفقیت ساخته شد ");
+      }
+
+      router.push("/users"); // اینجا صفحه مقصدت رو بنویس
     }
+    if (error) toast.error(error);
+  }, [token, error, router]);
+
+  const inputClass =
+    "rounded-lg border-2 border-solid border-white px-6 py-3 placeholder:text-sm placeholder:font-bold placeholder:text-white/55 focus:outline-none text-white bg-transparent text-white";
+
+  const loginHandler = () => {
+    dispatch(loginUser(userInfo));
   };
 
   return (
-    <div className="mx-6 flex flex-col items-center justify-center gap-8 rounded-lg border-2 border-solid border-white py-8">
-      {/* user info inputs */}
-      <div className="flex flex-col items-center justify-center gap-5 text-center">
-        <input
-          type="text"
-          placeholder="آدرس ایمیل"
-          value={userInfo.email}
-          onChange={(e) =>
-            setUserInfo((info) => ({ ...info, email: e.target.value }))
-          }
-          className={inputClass}
-        />
-        <input
-          type="text"
-          placeholder="رمز عبور"
-          value={userInfo.password}
-          onChange={(e) =>
-            setUserInfo((info) => ({ ...info, password: e.target.value }))
-          }
-          className={inputClass}
-        />
+    <div>
+      <h2 className="mr-6 mb-6 font-bold text-white">
+        {register ? "ساخت حساب کاربری" : "        ورود به حساب کاربری :"}
+      </h2>{" "}
+      <div className="mx-6 flex flex-col items-center justify-center gap-8 rounded-lg border-2 border-solid border-white py-8">
+        {/* user info inputs */}
+        <div className="flex w-full max-w-sm flex-col items-center justify-center gap-5 text-center">
+          <input
+            type="email"
+            placeholder="آدرس ایمیل"
+            value={userInfo.email}
+            onChange={(e) =>
+              setUserInfo((info) => ({ ...info, email: e.target.value }))
+            }
+            className={inputClass}
+          />
+          <input
+            type="password"
+            placeholder="رمز عبور"
+            value={userInfo.password}
+            onChange={(e) =>
+              setUserInfo((info) => ({ ...info, password: e.target.value }))
+            }
+            className={inputClass}
+          />
+          <p
+            onClick={() => setRegister((register) => !register)}
+            className="border-b-2 border-blue-600 pb-1 text-sm font-bold text-blue-500"
+          >
+            {register
+              ? "حساب دارم ، میخام وارد حساب خودم بشم"
+              : "      حساب ندارم ! میخام ثبت نام کنم"}
+          </p>
+        </div>
+        {/* login button */}
+        <button
+          disabled={loading || !userInfo.email || !userInfo.password}
+          onClick={loginHandler}
+          className="rounded-lg bg-white px-8 py-2 font-bold text-black disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {loading ? (
+            <div className="mx-auto w-max">
+              <PulseLoader color="#366de5" margin={5} size={10} />
+            </div>
+          ) : register ? (
+            "ساخت حساب"
+          ) : (
+            "ورود"
+          )}
+        </button>
+        <Toaster />
       </div>
-      {/* login button */}
-      <button
-        disabled={!userInfo.email && !userInfo.password}
-        onClick={() => loginHandler(userInfo)}
-        className="blackColor rounded-lg bg-white px-8 py-2 font-bold disabled:cursor-not-allowed disabled:opacity-70"
-      >
-        ساخت حساب
-      </button>
     </div>
   );
 }
