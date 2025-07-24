@@ -11,3 +11,7 @@ export interface IProps {
 export interface ID {
   id: string;
 }
+
+export interface ICreateUser {
+  setIsCreateUser: (value: boolean) => void;
+}

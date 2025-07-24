@@ -8,10 +8,15 @@ const nextConfig = {
         hostname: "reqres.in",
         pathname: "/img/faces/**",
       },
+      {
+        protocol: "https",
+        hostname: "tsymxyztopbyygowwmpm.supabase.co",
+        pathname: "/storage/v1/object/public/**", // ← مسیر عمومی فایل‌ها در Supabase
+      },
     ],
   },
   typescript: {
-    ignoreBuildErrors: true, // اگر نمی‌خواهید خطاهای TypeScript در هنگام بیلد بررسی شوند
+    ignoreBuildErrors: true,
   },
 };
 

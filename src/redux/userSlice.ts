@@ -13,17 +13,40 @@ const initialState: IUsersState = {
 // getting user info
 export const fetchUsers = createAsyncThunk(
   "users/fetchUsers",
-  async (page: number) => {
-    const response = await axiosClient.get(`/users?page=${page}`);
-    return response.data;
+  async (_, { rejectWithValue }) => {
+    try {
+      const cached = localStorage.getItem("users");
+
+      if (cached) {
+        return JSON.parse(cached);
+      }
+
+      const response = await axiosClient.get("/users?page=1");
+
+      // save in localStorage
+      localStorage.setItem("users", JSON.stringify(response.data));
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
   },
 );
 
 // editing user info
 export const updateUser = createAsyncThunk(
   "users/updateUser",
-  async ({ id, data }: { id: number; data}) => {
+  async ({ id, data }: { id: number; data }) => {
     const response = await axiosClient.put(`/users/${id}`, data);
+    return response.data;
+  },
+);
+
+// creating user
+export const createUser = createAsyncThunk(
+  "users/createUser",
+  async (data: { name: string; email: string }) => {
+    const response = await axiosClient.post("/users", data);
     return response.data;
   },
 );
@@ -78,6 +101,20 @@ const userSlice = createSlice({
         state.loading = false;
         state.error = action.error.message ?? "خطا در ویرایش کاربر";
       })
+      // creating user
+      .addCase(createUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.users.unshift(action.payload); // اضافه به ابتدای لیست
+      })
+      .addCase(createUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message ?? "خطا در ایجاد کاربر";
+      })
+
       // deleting user
       .addCase(deleteUser.pending, (state) => {
         state.loading = true;

@@ -13,6 +13,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { updateUser } from "@/redux/userSlice";
 import { deleteUser } from "@/redux/userSlice";
 import { useRouter } from "next/navigation";
+import { TiArrowBack } from "react-icons/ti";
 
 function SingleUSerInfo({ id }: ID) {
   const [info, setInfo] = useState<ISingleUserInfo>({
@@ -39,7 +40,7 @@ function SingleUSerInfo({ id }: ID) {
     "rounded border-2 border-blue-600 bg-transparent p-1 text-white placeholder:text-white/45 placeholder:text-sm focus:outline-none px-3";
 
   const dispatch = useAppDispatch();
-  const { loading, error } = useAppSelector((state) => state.users);
+  const { loading } = useAppSelector((state) => state.users);
 
   //   getting user info by id
   useEffect(() => {
@@ -55,20 +56,61 @@ function SingleUSerInfo({ id }: ID) {
           });
         }
       } catch (error) {
-        console.log(error);
+        console.warn("⛔ خطا در دریافت از API. بررسی localStorage...");
+
+        const stored = localStorage.getItem("users");
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            const found = parsed.data.find(
+              (user: ISingleUserInfo) => user.id == id,
+            );
+            if (found) {
+              setInfo(found);
+              setFormData({
+                first_name: found.first_name,
+                last_name: found.last_name,
+                email: found.email,
+              });
+            } else {
+              console.error("کاربر با این ID در localStorage یافت نشد");
+            }
+          } catch (err) {
+            console.error("خطا در پارس کردن localStorage", err);
+          }
+        } else {
+          console.error("هیچ دیتایی در localStorage موجود نیست");
+        }
       }
     };
+
     fetchUser();
   }, [id]);
 
-  //   update user
+  // update user
   const handleUpdate = async () => {
     try {
       await dispatch(updateUser({ id: info.id, data: formData })).unwrap();
-      // اگر موفق بودیم، فرم رو ببند
+
+      // فرم را ببند و state را آپدیت کن
       setIsEditing(false);
-      // به‌روزرسانی info با داده‌های جدید
       setInfo((prev) => ({ ...prev, ...formData }));
+
+      // ✅ update localStorage if exists
+      const stored = localStorage.getItem("users");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const updatedUsers = parsed.data.map((user: ISingleUserInfo) =>
+          user.id === info.id ? { ...user, ...formData } : user,
+        );
+
+        const updatedStorage = {
+          ...parsed,
+          data: updatedUsers,
+        };
+
+        localStorage.setItem("users", JSON.stringify(updatedStorage));
+      }
     } catch (err) {
       console.error("خطا در آپدیت کاربر:", err);
     }
@@ -76,9 +118,27 @@ function SingleUSerInfo({ id }: ID) {
 
   // delete user
 
+  // delete user
   const handleDelete = async () => {
     try {
       await dispatch(deleteUser(info.id)).unwrap();
+
+      // ✅ حذف از localStorage
+      const stored = localStorage.getItem("users");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const updatedUsers = parsed.data.filter(
+          (user: ISingleUserInfo) => user.id !== info.id,
+        );
+
+        const updatedStorage = {
+          ...parsed,
+          data: updatedUsers,
+        };
+
+        localStorage.setItem("users", JSON.stringify(updatedStorage));
+      }
+
       router.push("/users"); // مسیر دلخواه بعد از حذف
     } catch (err) {
       console.error("خطا در حذف کاربر:", err);
@@ -124,6 +184,9 @@ function SingleUSerInfo({ id }: ID) {
               </li>
               <li onClick={() => setIsEditing(true)}>
                 <RiEdit2Fill className="text-3xl text-blue-600" />
+              </li>
+              <li onClick={() => router.back()}>
+                <TiArrowBack className="text-3xl text-white" />
               </li>
             </ul>
           </div>
