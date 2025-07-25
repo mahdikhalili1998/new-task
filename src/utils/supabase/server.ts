@@ -19,9 +19,7 @@ export const createClient = async (
           cookiesToSet.forEach(({ name, value, options }) =>
             cookieStore.set(name, value, options),
           );
-        } catch {
-          // نادیده گرفتن خطای setAll در Server Component
-        }
+        } catch {}
       },
     },
   });
