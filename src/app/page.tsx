@@ -6,7 +6,7 @@ export default async function Home() {
   const cookieStore = cookies();
   const supabase = await createClient(cookieStore);
 
-  const { data, error } = await supabase.from("users").select();
+  const { error } = await supabase.from("users").select();
 
   if (error) {
     console.log(error);

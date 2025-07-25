@@ -57,8 +57,6 @@ function SingleUSerInfo({ id }: ID) {
           });
         }
       } catch (error) {
-        console.warn("⛔ خطا در دریافت از API. بررسی localStorage...");
-
         const stored = localStorage.getItem("users");
         if (stored) {
           try {
@@ -80,7 +78,7 @@ function SingleUSerInfo({ id }: ID) {
             console.error("خطا در پارس کردن localStorage", err);
           }
         } else {
-          console.error("هیچ دیتایی در localStorage موجود نیست");
+          console.log(error);
         }
       }
     };

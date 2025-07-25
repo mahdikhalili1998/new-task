@@ -26,7 +26,13 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
   const supabase = createClient();
 
   // تابع ذخیره کاربر در localStorage
-  const saveUserToLocalStorage = (user: any) => {
+  const saveUserToLocalStorage = (user: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    avatar: string;
+  }) => {
     const stored = localStorage.getItem("users");
     let updatedUsers = [];
     if (stored) {
@@ -56,8 +62,9 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
       if (file) {
         avatarUrl = await uploadAvatar(file, id);
       }
-    } catch (err) {
+    } catch (error) {
       toast.error("خطا در آپلود آواتار");
+      console.log(error);
       setLocalLoading(false); // پایان لودینگ در صورت خطا
       return;
     }
