@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { createUser } from "@/redux/userSlice";
 import toast, { Toaster } from "react-hot-toast";
@@ -16,6 +16,31 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
     last_name: "",
     email: "",
   });
+
+  const modalRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
+        setIsCreateUser(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // lock scroll
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, []);
 
   const [file, setFile] = useState<File | null>(null);
   const [localLoading, setLocalLoading] = useState<boolean>(false);
@@ -116,7 +141,10 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-lg border-2 border-white bg-[#1a1a1a] p-8">
+      <div
+        ref={modalRef}
+        className="mx-4 w-full max-w-md rounded-lg border-2 border-white bg-[#1a1a1a] p-8"
+      >
         <h2 className="mb-6 text-center font-bold text-white">
           ایجاد کاربر جدید
         </h2>
@@ -163,7 +191,7 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
           <div className="mt-4 flex items-center justify-between gap-4">
             <button
               onClick={() => setIsCreateUser(false)}
-              className="w-full rounded-lg border border-white bg-transparent px-6 py-2 text-white"
+              className="w-full rounded-lg border bg-red-500 px-6 py-2 text-white"
             >
               انصراف
             </button>
