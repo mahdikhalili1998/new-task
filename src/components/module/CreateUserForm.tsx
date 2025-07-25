@@ -18,13 +18,37 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
   });
 
   const [file, setFile] = useState<File | null>(null);
+  const [localLoading, setLocalLoading] = useState<boolean>(false);
 
   const dispatch = useAppDispatch();
   const { loading, error } = useAppSelector((state) => state.users);
 
   const supabase = createClient();
 
+  // تابع ذخیره کاربر در localStorage
+  const saveUserToLocalStorage = (user: any) => {
+    const stored = localStorage.getItem("users");
+    let updatedUsers = [];
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      updatedUsers = [user, ...parsed.data];
+    } else {
+      updatedUsers = [user];
+    }
+    localStorage.setItem(
+      "users",
+      JSON.stringify({
+        data: updatedUsers,
+        page: 1,
+        total_pages: 1,
+      }),
+    );
+  };
+
   const handleCreate = async () => {
+    if (localLoading) return; // جلوگیری از کلیک مجدد در حین عملیات
+
+    setLocalLoading(true); // شروع لودینگ
     const id = uuidv4();
     let avatarUrl: string | null = null;
 
@@ -34,6 +58,7 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
       }
     } catch (err) {
       toast.error("خطا در آپلود آواتار");
+      setLocalLoading(false); // پایان لودینگ در صورت خطا
       return;
     }
 
@@ -45,33 +70,20 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
         getInitialsAvatarText(userData.first_name, userData.last_name),
     };
 
-    // ذخیره در Supabase
+    // اول ذخیره در localStorage
+    saveUserToLocalStorage(newUser);
+
+    // بعد ذخیره در Supabase
     const { error: dbError } = await supabase.from("users").insert([newUser]);
     if (dbError) {
       toast.error("خطا در ذخیره‌سازی در دیتابیس");
+      setLocalLoading(false); // پایان لودینگ در صورت خطا
       return;
     }
 
     // ذخیره در redux
     const action = await dispatch(createUser(newUser));
     if (createUser.fulfilled.match(action)) {
-      const stored = localStorage.getItem("users");
-      let updatedUsers = [];
-
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        updatedUsers = [action.payload, ...parsed.data]; // اضافه به اول لیست
-      } else {
-        updatedUsers = [action.payload];
-      }
-      localStorage.setItem(
-        "users",
-        JSON.stringify({
-          data: updatedUsers,
-          page: 1,
-          total_pages: 1,
-        }),
-      );
       toast.success("کاربر با موفقیت ساخته شد 🎉");
       setUserData({ first_name: "", last_name: "", email: "" });
       setFile(null);
@@ -79,6 +91,8 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
     } else {
       toast.error(action.error?.message || "خطا در ایجاد کاربر");
     }
+
+    setLocalLoading(false); // پایان لودینگ
   };
 
   useEffect(() => {
@@ -88,10 +102,9 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
   const inputClass =
     "rounded-lg border-2 border-white bg-transparent px-6 py-3 text-white placeholder:text-sm placeholder:font-bold placeholder:text-white/55 focus:outline-none";
 
-  // 👇 فقط یه متن بساز، چون آواتار باید string باشه
   const getInitialsAvatarText = (first: string, last: string) => {
     const initials = `${first?.[0] ?? ""}${last?.[0] ?? ""}`.toUpperCase();
-    return `👤 ${initials}`; // یا فقط initials
+    return `👤 ${initials}`;
   };
 
   return (
@@ -152,7 +165,8 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
                 loading ||
                 !userData.first_name ||
                 !userData.last_name ||
-                !userData.email
+                !userData.email ||
+                !file
               }
               onClick={handleCreate}
               className="w-full rounded-lg bg-white px-6 py-2 font-bold text-black disabled:opacity-60"

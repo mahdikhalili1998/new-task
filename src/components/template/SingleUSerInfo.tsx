@@ -23,6 +23,7 @@ function SingleUSerInfo({ id }: ID) {
     last_name: "",
     id: 1,
   });
+  console.log(info);
 
   const [isDelete, setIsDelete] = useState<boolean>(false);
 
@@ -63,7 +64,7 @@ function SingleUSerInfo({ id }: ID) {
           try {
             const parsed = JSON.parse(stored);
             const found = parsed.data.find(
-              (user: ISingleUserInfo) => user.id == id,
+              (user: ISingleUserInfo) => String(user.id) === String(id),
             );
             if (found) {
               setInfo(found);

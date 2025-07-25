@@ -6,9 +6,11 @@ export default async function Home() {
   const cookieStore = cookies();
   const supabase = await createClient(cookieStore);
 
-  const { data, error } = await supabase.from("todos").select();
+  const { data, error } = await supabase.from("users").select();
 
-  if (error) return <div>خطا در دریافت اطلاعات</div>;
+  if (error) {
+    console.log(error);
+  }
 
   return <Mainpage />;
 }

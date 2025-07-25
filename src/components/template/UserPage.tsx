@@ -6,7 +6,7 @@ import { AppDispatch, RootState } from "@/redux/store";
 import { fetchUsers } from "@/redux/userSlice";
 import { PulseLoader } from "react-spinners";
 import { TbReload } from "react-icons/tb";
-import { useRouter } from "next/navigation";
+
 import Link from "next/link";
 import Image from "next/image";
 import { MdKeyboardDoubleArrowRight } from "react-icons/md";
@@ -15,11 +15,13 @@ import { HiUserAdd } from "react-icons/hi";
 
 import CreateUserForm from "../module/CreateUserForm";
 import { shortenEmail } from "@/utils/function";
+import { useRouter } from "next/navigation";
 
 export default function UsersPage() {
   const [isCreateUser, setIsCreateUser] = useState(false);
-
+  const [isrefresh, setIsRefresh] = useState<boolean>(false);
   const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
   const { users, loading, error, page, totalPages } = useSelector(
     (state: RootState) => state.users,
   );
@@ -38,34 +40,61 @@ export default function UsersPage() {
     localStorage.removeItem("users"); // 🧹 پاک کردن کش لوکال
     await dispatch(fetchUsers(page)); // 🔄 گرفتن مجدد از API
     toast.success("بروزرسانی انجام شد"); // ✅ اعلان موفقیت
+    setIsRefresh(false);
+    router.refresh();
   };
 
   return (
     <div className="relative p-6">
       <h1 className="mb-4 text-2xl font-bold text-white">لیست کاربران</h1>
-
       {/* Refresh Button */}
       <button
-        onClick={handleRefresh}
+        onClick={() => setIsRefresh(true)}
         className="mb-4 flex items-center justify-center gap-3 rounded-lg bg-blue-500 px-3 py-2 font-semibold text-white"
       >
         <span>به روز رسانی </span>
         <TbReload />
       </button>
-      <p className="text-sm mb-4 text-red-500">
-        با زدن این دکمه کلیه اطلاعات جدید که اضافه شدند ، حذف میشوند
-      </p>
-
+      {isrefresh && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="mx-5 flex flex-col items-center justify-center gap-4 rounded bg-[#3b116d] p-4 shadow-lg shadow-blue-600/85">
+            <h2 className="text-sm text-white">
+              با این کار تمام اطلاعات جدید که ثبت شدند حذف میگردند ، ادامه
+              میدهید؟
+            </h2>
+            <div className="flex w-full items-center justify-center gap-6">
+              <button
+                onClick={handleRefresh}
+                disabled={loading}
+                className="w-1/2 rounded bg-red-500 py-2 text-white disabled:opacity-50"
+              >
+                {loading ? (
+                  <div className="mx-auto w-max">
+                    <PulseLoader color="#fff" margin={5} size={10} />
+                  </div>
+                ) : (
+                  "ادامه"
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsRefresh(false)}
+                className="w-1/2 rounded bg-blue-600 py-2 text-white"
+              >
+                انصراف
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Loading Spinner */}
       {loading && (
         <div className="mx-auto w-max">
           <PulseLoader color="#366de5" margin={8} size={15} />
         </div>
       )}
-
       {/* Error */}
       {error && <p className="text-red-500">خطا: {error}</p>}
-
       {/* User Grid */}
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
         {users.map((user) => (
@@ -97,7 +126,6 @@ export default function UsersPage() {
           </Link>
         ))}
       </div>
-
       {/* Pagination */}
       <div className="flex items-center justify-center gap-4">
         <button
@@ -118,7 +146,6 @@ export default function UsersPage() {
           بعدی
         </button>
       </div>
-
       {/* Add User Button */}
       <button
         onClick={() => setIsCreateUser(true)}
@@ -126,10 +153,8 @@ export default function UsersPage() {
       >
         <HiUserAdd className="text-3xl text-white" />
       </button>
-
       {/* Create User Modal */}
       {isCreateUser && <CreateUserForm setIsCreateUser={setIsCreateUser} />}
-
       <Toaster />
     </div>
   );
