@@ -32,7 +32,7 @@ function LoginModal() {
       router.push("/users"); // اینجا صفحه مقصدت رو بنویس
     }
     if (error) toast.error(error);
-  }, [token, error, router]);
+  }, [token, error, router, register]);
 
   const inputClass =
     "rounded-lg border-2 border-solid border-white px-6 py-3 placeholder:text-sm placeholder:font-bold placeholder:text-white/55 focus:outline-none text-white bg-transparent text-white";
