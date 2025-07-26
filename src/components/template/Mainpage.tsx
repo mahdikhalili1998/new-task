@@ -1,5 +1,4 @@
 import React from "react";
-import LoginModal from "../module/LoginModal";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -14,7 +13,7 @@ function Mainpage() {
         priority
         className="mx-auto w-[18rem] rounded-lg"
       />
-      <div className="my-4 px-6 sm:px-14 lg:px-20 text-white">
+      <div className="my-4 px-6 text-white sm:px-14 lg:px-20">
         <h3 className="mb-2 text-lg font-bold"> نکته مهم درباره API</h3>
         <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed">
           <li>

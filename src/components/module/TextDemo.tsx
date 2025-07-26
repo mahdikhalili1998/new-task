@@ -13,7 +13,7 @@ function TextDemo() {
       backDelay: 1000,
       loop: true,
       showCursor: true,
-      cursorChar: "|", // می‌تونی این علامت رو تغییر بدی مثلا "_"
+      cursorChar: "|", 
     });
 
     return () => {

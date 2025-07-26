@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { fetchUsers } from "@/redux/userSlice";
 import { PulseLoader } from "react-spinners";
 import { TbReload } from "react-icons/tb";
+import { fetchUsers, setUsersFromLocal } from "@/redux/userSlice";
 
 import Link from "next/link";
 import { MdKeyboardDoubleArrowRight } from "react-icons/md";
@@ -41,10 +41,6 @@ export default function UsersPage() {
     };
   }, []);
 
-  // for image after edit user info
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { users, loading, error, page, totalPages } = useSelector(
@@ -52,6 +48,24 @@ export default function UsersPage() {
   );
 
   useEffect(() => {
+    const stored = localStorage.getItem("users");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed.data && parsed.data.length > 0) {
+          dispatch(
+            setUsersFromLocal({
+              data: parsed.data,
+              page: parsed.page,
+              total_pages: parsed.total_pages,
+            }),
+          );
+          return;
+        }
+      } catch {
+        // ignore error
+      }
+    }
     dispatch(fetchUsers(page));
   }, [dispatch, page]);
 
@@ -62,9 +76,9 @@ export default function UsersPage() {
   };
 
   const handleRefresh = async () => {
-    localStorage.removeItem("users"); // 🧹 پاک کردن کش لوکال
-    await dispatch(fetchUsers(page)); // 🔄 گرفتن مجدد از API
-    toast.success("بروزرسانی انجام شد"); // ✅ اعلان موفقیت
+    localStorage.removeItem("users");
+    await dispatch(fetchUsers(page));
+    toast.success("بروزرسانی انجام شد");
     setIsRefresh(false);
     router.refresh();
   };

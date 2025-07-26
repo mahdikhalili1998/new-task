@@ -15,3 +15,8 @@ export interface ID {
 export interface ICreateUser {
   setIsCreateUser: (value: boolean) => void;
 }
+ export type TProps = {
+   src?: string;
+   alt: string;
+   userId: string | number;
+ };

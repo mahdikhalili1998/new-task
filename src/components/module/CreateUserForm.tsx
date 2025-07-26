@@ -18,6 +18,8 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
   });
 
   const modalRef = useRef<HTMLDivElement>(null);
+
+  // Close modal if clicked outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -34,7 +36,7 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
     };
   }, []);
 
-  // lock scroll
+  // Lock body scroll while modal is open
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -50,7 +52,7 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
 
   const supabase = createClient();
 
-  // تابع ذخیره کاربر در localStorage
+  // Save user to localStorage
   const saveUserToLocalStorage = (user: {
     id: string;
     first_name: string;
@@ -66,6 +68,7 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
     } else {
       updatedUsers = [user];
     }
+
     localStorage.setItem(
       "users",
       JSON.stringify({
@@ -76,10 +79,11 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
     );
   };
 
+  // Create user handler
   const handleCreate = async () => {
-    if (localLoading) return; // جلوگیری از کلیک مجدد در حین عملیات
+    if (localLoading) return;
 
-    setLocalLoading(true); // شروع لودینگ
+    setLocalLoading(true);
     const id = uuidv4();
     let avatarUrl: string | null = null;
 
@@ -89,8 +93,8 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
       }
     } catch (error) {
       toast.error("خطا در آپلود آواتار");
-      console.log(error);
-      setLocalLoading(false); // پایان لودینگ در صورت خطا
+      console.error(error);
+      setLocalLoading(false);
       return;
     }
 
@@ -102,21 +106,21 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
         getInitialsAvatarText(userData.first_name, userData.last_name),
     };
 
-    // اول ذخیره در localStorage
+    // Save to localStorage
     saveUserToLocalStorage(newUser);
 
-    // بعد ذخیره در Supabase
+    // Save to Supabase
     const { error: dbError } = await supabase.from("users").insert([newUser]);
     if (dbError) {
       toast.error("خطا در ذخیره‌سازی در دیتابیس");
-      setLocalLoading(false); // پایان لودینگ در صورت خطا
+      setLocalLoading(false);
       return;
     }
 
-    // ذخیره در redux
+    // Save to Redux
     const action = await dispatch(createUser(newUser));
     if (createUser.fulfilled.match(action)) {
-      toast.success("کاربر با موفقیت ساخته شد 🎉");
+      toast.success("کاربر با موفقیت ساخته شد ");
       setUserData({ first_name: "", last_name: "", email: "" });
       setFile(null);
       setIsCreateUser(false);
@@ -124,9 +128,10 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
       toast.error(action.error?.message || "خطا در ایجاد کاربر");
     }
 
-    setLocalLoading(false); // پایان لودینگ
+    setLocalLoading(false);
   };
 
+  // Show error toast from Redux if any
   useEffect(() => {
     if (error) toast.error(error);
   }, [error]);
@@ -134,9 +139,10 @@ function CreateUserForm({ setIsCreateUser }: ICreateUser) {
   const inputClass =
     "rounded-lg border-2 border-white bg-transparent px-6 py-3 text-white placeholder:text-sm placeholder:font-bold placeholder:text-white/55 focus:outline-none";
 
+  // Generate fallback avatar with user initials
   const getInitialsAvatarText = (first: string, last: string) => {
     const initials = `${first?.[0] ?? ""}${last?.[0] ?? ""}`.toUpperCase();
-    return `👤 ${initials}`;
+    return ` ${initials}`;
   };
 
   return (
