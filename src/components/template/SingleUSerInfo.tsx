@@ -10,12 +10,11 @@ import { RiEdit2Fill } from "react-icons/ri";
 import { MdDeleteForever } from "react-icons/md";
 import Image from "next/image";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
-import { updateUser } from "@/redux/userSlice";
-import { deleteUser } from "@/redux/userSlice";
+import { updateUser, deleteUser } from "@/redux/userSlice";
 import { useRouter } from "next/navigation";
 import { TiArrowBack } from "react-icons/ti";
 
-function SingleUSerInfo({ id }: ID) {
+function SingleUserInfo({ id }: ID) {
   const [info, setInfo] = useState<ISingleUserInfo>({
     avatar: "",
     email: "",
@@ -23,28 +22,25 @@ function SingleUSerInfo({ id }: ID) {
     last_name: "",
     id: 1,
   });
-  console.log(info);
 
-  const [isDelete, setIsDelete] = useState<boolean>(false);
-
-  //   for editing
+  const [isDelete, setIsDelete] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+
   const [formData, setFormData] = useState({
-    first_name: info.first_name,
-    last_name: info.last_name,
-    email: info.email,
+    first_name: "",
+    last_name: "",
+    email: "",
   });
 
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { loading } = useAppSelector((state) => state.users);
 
   const inputClass =
     "rounded border-2 border-blue-600 bg-transparent p-1 text-white placeholder:text-white/45 placeholder:text-sm focus:outline-none px-3";
 
-  const dispatch = useAppDispatch();
-  const { loading } = useAppSelector((state) => state.users);
-
-  //   getting user info by id
   useEffect(() => {
+    // Fetch user data by id from API or fallback to localStorage
     const fetchUser = async () => {
       try {
         const response = await axiosClient.get(`/users/${id}`);
@@ -56,7 +52,8 @@ function SingleUSerInfo({ id }: ID) {
             email: response.data.data.email,
           });
         }
-      } catch (error) {
+      } catch {
+        // fallback to localStorage if API fails
         const stored = localStorage.getItem("users");
         if (stored) {
           try {
@@ -71,14 +68,8 @@ function SingleUSerInfo({ id }: ID) {
                 last_name: found.last_name,
                 email: found.email,
               });
-            } else {
-              console.error("کاربر با این ID در localStorage یافت نشد");
             }
-          } catch (err) {
-            console.error("خطا در پارس کردن localStorage", err);
-          }
-        } else {
-          console.log(error);
+          } catch {}
         }
       }
     };
@@ -86,62 +77,48 @@ function SingleUSerInfo({ id }: ID) {
     fetchUser();
   }, [id]);
 
-  // update user
+  // Update user info both in redux store and localStorage
   const handleUpdate = async () => {
     try {
       await dispatch(updateUser({ id: info.id, data: formData })).unwrap();
 
-      // فرم را ببند و state را آپدیت کن
+      const updatedUserData = { ...info, ...formData };
       setIsEditing(false);
-      setInfo((prev) => ({ ...prev, ...formData }));
+      setInfo(updatedUserData);
 
-      // ✅ update localStorage if exists
       const stored = localStorage.getItem("users");
       if (stored) {
         const parsed = JSON.parse(stored);
         const updatedUsers = parsed.data.map((user: ISingleUserInfo) =>
-          user.id === info.id ? { ...user, ...formData } : user,
+          user.id === info.id ? updatedUserData : user,
         );
-
-        const updatedStorage = {
-          ...parsed,
-          data: updatedUsers,
-        };
-
-        localStorage.setItem("users", JSON.stringify(updatedStorage));
+        localStorage.setItem(
+          "users",
+          JSON.stringify({ ...parsed, data: updatedUsers }),
+        );
       }
-    } catch (err) {
-      console.error("خطا در آپدیت کاربر:", err);
-    }
+    } catch {}
   };
 
-  // delete user
-
-  // delete user
+  // Delete user and update localStorage, then navigate back to users list
   const handleDelete = async () => {
     try {
       await dispatch(deleteUser(info.id)).unwrap();
 
-      // ✅ حذف از localStorage
       const stored = localStorage.getItem("users");
       if (stored) {
         const parsed = JSON.parse(stored);
         const updatedUsers = parsed.data.filter(
           (user: ISingleUserInfo) => user.id !== info.id,
         );
-
-        const updatedStorage = {
-          ...parsed,
-          data: updatedUsers,
-        };
-
-        localStorage.setItem("users", JSON.stringify(updatedStorage));
+        localStorage.setItem(
+          "users",
+          JSON.stringify({ ...parsed, data: updatedUsers }),
+        );
       }
 
-      router.push("/users"); // مسیر دلخواه بعد از حذف
-    } catch (err) {
-      console.error("خطا در حذف کاربر:", err);
-    }
+      router.push("/users");
+    } catch {}
   };
 
   return (
@@ -153,43 +130,42 @@ function SingleUSerInfo({ id }: ID) {
       ) : (
         <div className="relative">
           <div className="mx-auto flex w-max flex-col items-center justify-center gap-8">
+            {/* User avatar */}
             <Image
               width={300}
               height={300}
               priority
               src={info.avatar}
               alt="avatar"
-              className="size-32 rounded-full border-2 border-blue-600"
+              className="size-32 sm:size-40 rounded-full border-2 border-blue-600"
             />
-            {/* detail box */}
+            {/* User details */}
             <div className="flex flex-col items-end justify-center gap-4">
-              {/* name & lastName */}
               <h2 className="flex items-center gap-2 font-semibold text-white">
                 <span className="pt-2">
                   {info.first_name} {info.last_name}
                 </span>
                 <IoIosPerson className="text-2xl text-blue-600" />
               </h2>
-              {/* email */}
               <p className="flex items-center gap-2 font-semibold text-white">
-                <span> {info.email}</span>
+                <span>{info.email}</span>
                 <MdEmail className="text-2xl text-blue-600" />
               </p>
             </div>
-            {/* edit & delete box  */}
+            {/* Action buttons */}
             <ul className="mt-4 flex items-center justify-between gap-4">
-              <li onClick={() => setIsDelete(true)}>
+              <li onClick={() => setIsDelete(true)} className="cursor-pointer">
                 <MdDeleteForever className="text-3xl text-red-500" />
               </li>
-              <li onClick={() => setIsEditing(true)}>
+              <li onClick={() => setIsEditing(true)} className="cursor-pointer">
                 <RiEdit2Fill className="text-3xl text-blue-600" />
               </li>
-              <li onClick={() => router.back()}>
+              <li onClick={() => router.back()} className="cursor-pointer">
                 <TiArrowBack className="text-3xl text-white" />
               </li>
             </ul>
           </div>
-          {/* for deleting */}
+
           {isDelete && (
             <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 backdrop-blur-sm">
               <div className="mx-5 flex flex-col items-center justify-center gap-4 rounded bg-[#3b116d] p-4 shadow-lg shadow-blue-600/85">
@@ -203,9 +179,7 @@ function SingleUSerInfo({ id }: ID) {
                     className="w-1/2 rounded bg-red-500 py-2 text-white disabled:opacity-50"
                   >
                     {loading ? (
-                      <div className="mx-auto w-max">
-                        <PulseLoader color="#fff" margin={5} size={10} />
-                      </div>
+                      <PulseLoader color="#fff" margin={5} size={10} />
                     ) : (
                       "حذف"
                     )}
@@ -222,20 +196,18 @@ function SingleUSerInfo({ id }: ID) {
             </div>
           )}
 
-          {/* for editing */}
-          {isEditing ? (
+          {isEditing && (
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleUpdate();
               }}
-              className="mx-6 my-4 flex flex-col gap-4"
+              className="mx-6 my-4 420:mx-10 520:mx-20 sm:w-1/2 sm:mx-auto sm:my-7  flex flex-col gap-4"
             >
               <h2 className="my-3 text-sm font-bold text-white">
                 ویرایش فیلد های مورد نظر :
               </h2>
-              {/* name  */}
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 ">
                 <label className="text-white" htmlFor="name">
                   نام :
                 </label>
@@ -250,14 +222,13 @@ function SingleUSerInfo({ id }: ID) {
                   className={inputClass}
                 />
               </div>
-              {/* lastName */}
               <div className="flex flex-col gap-1">
                 <label className="text-white" htmlFor="lastName">
                   نام خانوادگی :
                 </label>
                 <input
-                  type="text"
                   id="lastName"
+                  type="text"
                   value={formData.last_name}
                   onChange={(e) =>
                     setFormData({ ...formData, last_name: e.target.value })
@@ -266,14 +237,13 @@ function SingleUSerInfo({ id }: ID) {
                   className={inputClass}
                 />
               </div>
-              {/* email */}
               <div className="flex flex-col gap-1">
                 <label className="text-white" htmlFor="email">
                   ایمیل :
                 </label>
                 <input
-                  type="email"
                   id="email"
+                  type="email"
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
@@ -282,7 +252,6 @@ function SingleUSerInfo({ id }: ID) {
                   className={inputClass}
                 />
               </div>
-              {/* action buttons  */}
               <div className="flex w-full items-center justify-center gap-6">
                 <button
                   type="submit"
@@ -290,11 +259,9 @@ function SingleUSerInfo({ id }: ID) {
                   className="w-1/2 rounded bg-blue-600 py-2 text-white disabled:opacity-50"
                 >
                   {loading ? (
-                    <div className="mx-auto w-max">
-                      <PulseLoader color="#fff" margin={5} size={10} />
-                    </div>
+                    <PulseLoader color="#fff" margin={5} size={10} />
                   ) : (
-                    "ذخیره "
+                    "ذخیره"
                   )}
                 </button>
                 <button
@@ -306,11 +273,11 @@ function SingleUSerInfo({ id }: ID) {
                 </button>
               </div>
             </form>
-          ) : null}
+          )}
         </div>
       )}
     </>
   );
 }
 
-export default SingleUSerInfo;
+export default SingleUserInfo;

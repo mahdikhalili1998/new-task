@@ -26,15 +26,11 @@ const saveUsersToLocalStorage = (data: {
 // Get users
 export const fetchUsers = createAsyncThunk<
   { data: IUser[]; page: number; total_pages: number },
-  void,
+  number, // ← شماره صفحه به عنوان ورودی
   { rejectValue: string }
->("users/fetchUsers", async (_, { rejectWithValue }) => {
+>("users/fetchUsers", async (page, { rejectWithValue }) => {
   try {
-    const cached = localStorage.getItem("users");
-    if (cached) {
-      return JSON.parse(cached);
-    }
-    const response = await axiosClient.get("/users?page=1");
+    const response = await axiosClient.get(`/users?page=${page}`); // ← استفاده از پارامتر
     saveUsersToLocalStorage(response.data);
     return response.data;
   } catch (error) {

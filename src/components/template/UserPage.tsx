@@ -8,7 +8,6 @@ import { PulseLoader } from "react-spinners";
 import { TbReload } from "react-icons/tb";
 
 import Link from "next/link";
-import Image from "next/image";
 import { MdKeyboardDoubleArrowRight } from "react-icons/md";
 import toast, { Toaster } from "react-hot-toast";
 import { HiUserAdd } from "react-icons/hi";
@@ -16,10 +15,36 @@ import { HiUserAdd } from "react-icons/hi";
 import CreateUserForm from "../module/CreateUserForm";
 import { shortenEmail } from "@/utils/function";
 import { useRouter } from "next/navigation";
+import UserAvatar from "../module/UserAvatar";
 
 export default function UsersPage() {
   const [isCreateUser, setIsCreateUser] = useState(false);
   const [isrefresh, setIsRefresh] = useState<boolean>(false);
+
+  const [showButton, setShowButton] = useState(true);
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY > lastScrollY) {
+        setShowButton(false);
+      } else {
+        setShowButton(true);
+      }
+      lastScrollY = currentScrollY;
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  // for image after edit user info
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { users, loading, error, page, totalPages } = useSelector(
@@ -93,15 +118,14 @@ export default function UsersPage() {
           <PulseLoader color="#366de5" margin={8} size={15} />
         </div>
       )}
-      {/* Error */}
-      {error && <p className="text-red-500">خطا: {error}</p>}
+
       {/* User Grid */}
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+      <div className="col-b3 grid-cols-3-920 mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {users.map((user) => (
           <Link
             key={user.id}
             href={`/users/${user.id}`}
-            className="flex items-center justify-between rounded-lg border border-blue-600 p-4 shadow transition hover:shadow-lg"
+            className="420:px-6 520:mx-6 flex items-center justify-between rounded-lg border border-blue-600 p-4 shadow transition hover:shadow-lg sm:mx-0"
           >
             <div className="flex flex-col items-start gap-2">
               <h2 className="font-semibold text-white">
@@ -115,29 +139,13 @@ export default function UsersPage() {
                 <span>مشاهده پروفایل</span>
               </button>
             </div>
-            <Image
-              width={300}
-              height={300}
-              priority
-              src={user.avatar}
-              alt={user.first_name}
-              className="mb-2 size-24 rounded-full border-[3px] border-blue-600"
-            />
+
+            <UserAvatar src={user.avatar} alt="user name" userId={user.id} />
           </Link>
         ))}
       </div>
       {/* Pagination */}
       <div className="flex items-center justify-center gap-4">
-        <button
-          onClick={() => handlePageChange(page - 1)}
-          disabled={page === 1}
-          className="rounded bg-gray-200 px-4 py-2 hover:bg-gray-300 disabled:opacity-50"
-        >
-          قبلی
-        </button>
-        <span className="text-white">
-          صفحه {page} از {totalPages}
-        </span>
         <button
           onClick={() => handlePageChange(page + 1)}
           disabled={page === totalPages}
@@ -145,14 +153,30 @@ export default function UsersPage() {
         >
           بعدی
         </button>
+
+        <span className="text-white">
+          صفحه {page} از {totalPages}
+        </span>
+        <button
+          onClick={() => handlePageChange(page - 1)}
+          disabled={page === 1}
+          className="rounded bg-gray-200 px-4 py-2 hover:bg-gray-300 disabled:opacity-50"
+        >
+          قبلی
+        </button>
       </div>
       {/* Add User Button */}
       <button
         onClick={() => setIsCreateUser(true)}
-        className="fixed right-5 bottom-5 rounded-full border-[3px] border-white bg-orange-500 p-3"
+        className={`fixed right-5 bottom-5 z-50 rounded-full border-[3px] border-white bg-orange-500 p-3 shadow-lg transition-all duration-300 ${
+          showButton
+            ? "translate-y-0 opacity-100"
+            : "pointer-events-none translate-y-10 opacity-0"
+        }`}
       >
         <HiUserAdd className="text-3xl text-white" />
       </button>
+
       {/* Create User Modal */}
       {isCreateUser && <CreateUserForm setIsCreateUser={setIsCreateUser} />}
       <Toaster />

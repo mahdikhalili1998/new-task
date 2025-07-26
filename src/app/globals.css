@@ -24,3 +24,18 @@ body {
     animation: slide-right-left 1s ease-in-out infinite;
   }
 }
+
+@theme {
+  --breakpoint-420: 420px;
+  --breakpoint-520: 520px;
+  --breakpoint-620: 620px;
+  --breakpoint-720: 720px;
+  --breakpoint-820: 820px;
+  --breakpoint-920: 920px;
+}
+
+@media (min-width: 920px) {
+  .grid-cols-3-920 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

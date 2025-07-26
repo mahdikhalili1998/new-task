@@ -1,5 +1,3 @@
-// مسیر: app/users/[id]/page.tsx
-
 import SingleUserInfo from "@/components/template/SingleUSerInfo";
 import { IProps } from "@/types/ComponentsProps";
 
