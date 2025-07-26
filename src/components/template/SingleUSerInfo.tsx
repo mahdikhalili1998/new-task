@@ -297,7 +297,7 @@ function SingleUserInfo({ id }: ID) {
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="w-1/2 rounded border border-blue-600 py-2 text-blue-600"
+              className="w-1/2 rounded border bg-red-500  py-2 text-white"
             >
               انصراف
             </button>
