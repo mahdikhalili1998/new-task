@@ -34,7 +34,7 @@ function SingleUserInfo({ id }: ID) {
     "rounded border-2 border-blue-600 bg-transparent p-1 text-white placeholder:text-white/45 placeholder:text-sm focus:outline-none px-3";
 
   useEffect(() => {
-    // اول localStorage رو چک کن
+   
     const stored = localStorage.getItem("users");
     if (stored) {
       try {
@@ -49,14 +49,13 @@ function SingleUserInfo({ id }: ID) {
             last_name: found.last_name,
             email: found.email,
           });
-          return; // اگر پیدا شد دیگه API نزن
+          return; 
         }
       } catch (error) {
         console.error("خطا در خواندن localStorage", error);
       }
     }
 
-    // اگر localStorage نداشت یا خطا داشت از API بگیر
     const fetchUser = async () => {
       try {
         const response = await axiosClient.get(`/users/${id}`);
@@ -68,7 +67,7 @@ function SingleUserInfo({ id }: ID) {
             email: response.data.data.email,
           });
 
-          // localStorage رو آپدیت کن
+
           const stored = localStorage.getItem("users");
           let currentUsers = [];
           if (stored) {

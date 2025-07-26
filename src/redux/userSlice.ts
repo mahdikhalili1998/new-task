@@ -10,7 +10,7 @@ const initialState: IUsersState = {
   error: null,
 };
 
-// Helper: ذخیره همزمان ریداکس و localStorage
+
 const saveUsersToLocalStorage = (data: {
   data: IUser[];
   page: number;
@@ -26,11 +26,11 @@ const saveUsersToLocalStorage = (data: {
 // Get users
 export const fetchUsers = createAsyncThunk<
   { data: IUser[]; page: number; total_pages: number },
-  number, // ← شماره صفحه به عنوان ورودی
+  number, 
   { rejectValue: string }
 >("users/fetchUsers", async (page, { rejectWithValue }) => {
   try {
-    const response = await axiosClient.get(`/users?page=${page}`); // ← استفاده از پارامتر
+    const response = await axiosClient.get(`/users?page=${page}`); 
     saveUsersToLocalStorage(response.data);
     return response.data;
   } catch (error) {
@@ -48,7 +48,7 @@ export const updateUser = createAsyncThunk<
 >("users/updateUser", async ({ id, data }, { rejectWithValue }) => {
   try {
     const response = await axiosClient.put(`/users/${id}`, data);
-    return { id, ...response.data }; // فرض: API داده جدید را برمی‌گرداند
+    return { id, ...response.data }; 
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "خطا در به‌روزرسانی کاربر";
@@ -100,7 +100,7 @@ const userSlice = createSlice({
         total_pages: 1,
       });
     },
-    // بارگذاری مستقیم از localStorage (اگر بخواهی دستی)
+
     setUsersFromLocal(
       state,
       action: PayloadAction<{
@@ -162,7 +162,7 @@ const userSlice = createSlice({
       })
       .addCase(createUser.fulfilled, (state, action) => {
         state.loading = false;
-        // اطمینان از عدم تکراری بودن (درصورت نیاز)
+    
         if (!state.users.find((u) => u.id === action.payload.id)) {
           state.users.unshift(action.payload);
           saveUsersToLocalStorage({
